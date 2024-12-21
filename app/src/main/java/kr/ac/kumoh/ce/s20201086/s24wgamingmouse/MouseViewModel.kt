@@ -11,9 +11,16 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MouseViewModel : ViewModel() {
     private val mouseApi: MouseApi
+
+    // 마우스 리스트
     private val _mouseList = MutableLiveData<List<Mouse>>()
     val mouseList: LiveData<List<Mouse>>
     get() = _mouseList
+
+    // 사이트 리스트
+    private val _siteList = MutableLiveData<List<Site>>()
+    val siteList: LiveData<List<Site>>
+        get() = _siteList
 
     init {
         val retrofit = Retrofit.Builder()
@@ -22,17 +29,34 @@ class MouseViewModel : ViewModel() {
             .build()
 
         mouseApi = retrofit.create(MouseApi::class.java)
-        fetchData()
+        fetchMouseData()
+        fetchSiteData()
     }
 
-    private fun fetchData() {
+    private fun fetchMouseData() {
         // Coroutine 사용
         viewModelScope.launch {
             try {
                 val response = mouseApi.getMouses()
-                _mouseList.value = response
+                // id 기준으로 정렬
+                val sortedResponse = response.sortedBy { it.id }
+                _mouseList.value = sortedResponse
             } catch(e: Exception) {
-                Log.e("fetchData()", e.toString())
+                Log.e("fetchMouseData()", e.toString())
+            }
+        }
+    }
+
+    private fun fetchSiteData() {
+        // Coroutine 사용
+        viewModelScope.launch {
+            try {
+                val response = mouseApi.getSites()
+                // id 기준으로 정렬
+                val sortedResponse = response.sortedBy { it.id }
+                _siteList.value = sortedResponse
+            } catch(e: Exception) {
+                Log.e("fetchSiteData()", e.toString())
             }
         }
     }
